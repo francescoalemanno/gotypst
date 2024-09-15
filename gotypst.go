@@ -22,6 +22,12 @@ func init() {
 		dir = os.TempDir()
 		err = nil
 	}
+	dir = path.Join(dir, "gotypst")
+	os.Mkdir(dir, 0755)
+	if err != nil {
+		dir = os.TempDir()
+		err = nil
+	}
 	name := runtime.GOARCH + "-" + runtime.GOOS
 	bin_path = path.Join(dir, name)
 	if _, err := os.Stat(bin_path); err != nil {
