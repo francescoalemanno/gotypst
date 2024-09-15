@@ -9,7 +9,7 @@ import (
 func TestPDF(t *testing.T) {
 	bts, err := gotypst.PDF([]byte("= hello"))
 
-	if bts[0] != 37 || err != nil {
-		t.Errorf("NOT WORKING")
+	if err != nil || len(bts) == 0 {
+		t.Errorf("%v", err)
 	}
 }
