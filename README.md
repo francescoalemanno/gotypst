@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	bts, err := gotypst.PDF([]byte("= hello"))
+    bts, err := gotypst.PDF([]byte("= hello"))
     if err!=nil {
         return
     }
