@@ -68,11 +68,11 @@ func RawExec(arg ...string) (string, error) {
 func PDF(bytes []byte, options ...string) ([]byte, error) {
 	temp_typ, err := os.CreateTemp(os.TempDir(), "*.typ")
 	if err != nil {
-		return []byte{}, nil
+		return []byte{}, err
 	}
 	_, err = temp_typ.Write(bytes)
 	if err != nil {
-		return []byte{}, nil
+		return []byte{}, err
 	}
 	temp_pdf_name := strings.TrimSuffix(temp_typ.Name(), ".typ") + ".pdf"
 	cmd := make([]string, 0)
