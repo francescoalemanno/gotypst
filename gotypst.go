@@ -1,8 +1,11 @@
 package gotypst
 
 import (
-	"embed"
+	"archive/zip"
+	"bytes"
+	_ "embed"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -11,8 +14,8 @@ import (
 	"strings"
 )
 
-//go:embed assets
-var static embed.FS
+//go:embed assets.zip
+var zipped_static []byte
 
 var bin_path string
 
@@ -31,7 +34,16 @@ func init() {
 	name := runtime.GOARCH + "-" + runtime.GOOS
 	bin_path = path.Join(dir, name)
 	if _, err := os.Stat(bin_path); err != nil {
-		bts, err := static.ReadFile("assets/" + name)
+		zr := bytes.NewReader(zipped_static)
+		zip_fs, err := zip.NewReader(zr, int64(len(zipped_static)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fi, err := zip_fs.Open("assets/" + name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bts, err := io.ReadAll(fi)
 		if err != nil {
 			log.Fatal(err)
 		}
