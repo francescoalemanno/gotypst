@@ -3,7 +3,7 @@ package gotypst
 import (
 	"archive/zip"
 	"bytes"
-	_ "embed"
+	"embed"
 	"fmt"
 	"io"
 	"log"
@@ -15,27 +15,22 @@ import (
 )
 
 //go:embed assets.zip
-var zipped_static []byte
+var assets_zipped []byte
+
+//go:embed fonts/*
+var fonts_efs embed.FS
 
 var bin_path string
 
 func init() {
-	dir, err := os.UserCacheDir()
-	if err != nil {
-		dir = os.TempDir()
-		err = nil
-	}
-	dir = path.Join(dir, "gotypst")
-	os.Mkdir(dir, 0755)
-	if err != nil {
-		dir = os.TempDir()
-		err = nil
-	}
+	dir := gotypstDir()
+
 	name := runtime.GOARCH + "-" + runtime.GOOS
+
 	bin_path = path.Join(dir, name)
 	if _, err := os.Stat(bin_path); err != nil {
-		zr := bytes.NewReader(zipped_static)
-		zip_fs, err := zip.NewReader(zr, int64(len(zipped_static)))
+		zr := bytes.NewReader(assets_zipped)
+		zip_fs, err := zip.NewReader(zr, int64(len(assets_zipped)))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,6 +47,40 @@ func init() {
 			log.Fatal(err)
 		}
 	}
+
+	font_rd, _ := fonts_efs.ReadDir("fonts")
+	fonts_dir := fontsDir()
+	os.Mkdir(fonts_dir, 0755)
+	for _, v := range font_rd {
+		if !strings.HasSuffix(v.Name(), ".ttf") {
+			continue
+		}
+		dest_path := path.Join(fonts_dir, v.Name())
+		if _, err := os.Stat(dest_path); err != nil {
+			fn, _ := fonts_efs.ReadFile(path.Join("fonts", v.Name()))
+			err := os.WriteFile(dest_path, fn, 0755)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+}
+
+func gotypstDir() string {
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		dir = os.TempDir()
+		err = nil
+	}
+	dir = path.Join(dir, "gotypst")
+	os.Mkdir(dir, 0755)
+	return dir
+}
+func fontsDir() string {
+	dir := gotypstDir()
+	dir = path.Join(dir, "fonts")
+	os.Mkdir(dir, 0755)
+	return dir
 }
 
 func RawExec(arg ...string) (string, error) {
@@ -91,6 +120,8 @@ func PDF(bytes []byte, options ...string) ([]byte, error) {
 	cmd = append(cmd, "compile")
 	cmd = append(cmd, temp_typ.Name())
 	cmd = append(cmd, options...)
+	cmd = append(cmd, "--font-path")
+	cmd = append(cmd, fontsDir())
 	cmd = append(cmd, temp_pdf_name)
 	out, err := RawExec(cmd...)
 	_ = os.Remove(temp_typ.Name())
