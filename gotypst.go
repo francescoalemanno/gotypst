@@ -132,3 +132,8 @@ func PDF(bytes []byte, options ...string) ([]byte, error) {
 	_ = os.Remove(temp_pdf_name)
 	return out_bytes, err
 }
+
+func Version() (string, error) {
+	out, err := RawExec("-V")
+	return out, err
+}
