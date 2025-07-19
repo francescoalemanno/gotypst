@@ -26,34 +26,37 @@ func init() {
 	dir := gotypstDir()
 
 	name := runtime.GOARCH + "-" + runtime.GOOS
-	bin_path = "typst"
-	closureGetBinary := func() {
+	bin_path = path.Join(dir, name)
+
+	closureGetBinary := func() bool {
 		if _, err := os.Stat(bin_path); err != nil {
 			zr := bytes.NewReader(assets_zipped)
 			zip_fs, err := zip.NewReader(zr, int64(len(assets_zipped)))
 			if err != nil {
 				log.Println(err)
-				return
+				return false
 			}
 			fi, err := zip_fs.Open("assets/" + name)
 			if err != nil {
 				log.Println(err)
-				return
+				return false
 			}
 			bts, err := io.ReadAll(fi)
 			if err != nil {
 				log.Println(err)
-				return
+				return false
 			}
 			err = os.WriteFile(bin_path, bts, 0755)
 			if err != nil {
 				log.Println(err)
-				return
+				return false
 			}
 		}
-		bin_path = path.Join(dir, name)
+		return true
 	}
-	closureGetBinary()
+	if !closureGetBinary() {
+		bin_path = "typst"
+	}
 
 	font_rd, _ := fonts_efs.ReadDir("fonts")
 	fonts_dir := fontsDir()
