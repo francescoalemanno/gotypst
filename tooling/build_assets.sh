@@ -1,5 +1,11 @@
 rm -R assets assets.zip
 mkdir assets
+ver="v0.13.1"
+wget "https://github.com/typst/typst/releases/download/$ver/typst-aarch64-apple-darwin.tar.xz"
+wget "https://github.com/typst/typst/releases/download/$ver/typst-aarch64-unknown-linux-musl.tar.xz"
+wget "https://github.com/typst/typst/releases/download/$ver/typst-armv7-unknown-linux-musleabi.tar.xz"
+wget "https://github.com/typst/typst/releases/download/$ver/typst-x86_64-apple-darwin.tar.xz"
+wget "https://github.com/typst/typst/releases/download/$ver/typst-x86_64-unknown-linux-musl.tar.xz"
 
 tar -xf typst-aarch64-apple-darwin.tar.xz --wildcards --no-anchored 'typst' --strip-components=1
 mv typst assets/arm64-darwin
