@@ -1,61 +1,35 @@
 package gotypst
 
 import (
-	"archive/zip"
-	"bytes"
 	"embed"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strings"
 )
 
-//go:embed assets.zip
-var assets_zipped []byte
-
 //go:embed fonts/*
 var fonts_efs embed.FS
+
+const typst_version = "0.14.2"
 
 var bin_path string
 
 func init() {
 	dir := gotypstDir()
+	bin_path = path.Join(dir, "typst")
+	version_path := path.Join(dir, "VERSION")
 
-	name := runtime.GOARCH + "-" + runtime.GOOS
-	bin_path = path.Join(dir, name)
-
-	closureGetBinary := func() bool {
-		if _, err := os.Stat(bin_path); err != nil {
-			zr := bytes.NewReader(assets_zipped)
-			zip_fs, err := zip.NewReader(zr, int64(len(assets_zipped)))
-			if err != nil {
-				log.Println(err)
-				return false
-			}
-			fi, err := zip_fs.Open("assets/" + name)
-			if err != nil {
-				log.Println(err)
-				return false
-			}
-			bts, err := io.ReadAll(fi)
-			if err != nil {
-				log.Println(err)
-				return false
-			}
-			err = os.WriteFile(bin_path, bts, 0755)
-			if err != nil {
-				log.Println(err)
-				return false
-			}
+	current, _ := os.ReadFile(version_path)
+	if string(current) != typst_version {
+		if err := os.WriteFile(bin_path, typst_binary, 0755); err != nil {
+			log.Println(err)
+			bin_path = "typst"
+		} else {
+			os.WriteFile(version_path, []byte(typst_version), 0644)
 		}
-		return true
-	}
-	if !closureGetBinary() {
-		bin_path = "typst"
 	}
 
 	font_rd, _ := fonts_efs.ReadDir("fonts")
